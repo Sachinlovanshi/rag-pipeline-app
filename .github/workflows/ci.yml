@@ -24,4 +24,4 @@ jobs:
  
     - name: Test Import
       run: |
-        python -c "import main"
+        python -c "from app import main"
