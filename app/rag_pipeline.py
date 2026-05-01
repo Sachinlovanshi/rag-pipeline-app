@@ -6,7 +6,7 @@ from langchain_community.vectorstores import FAISS
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_core.prompts import PromptTemplate
-from langchain_core.runnables import RunnableLambda
+from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 import jq
 import time
@@ -16,10 +16,7 @@ load_dotenv()
 def create_rag_pipeline():
     try:
         # load embeddings
-        hf_embeddings = HuggingFaceEmbeddings(
-            model_name="sentence-transformers/all-MiniLM-L6-v2",
-            model_kwargs={"local_files_only": True}
-        )
+        hf_embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
         if os.path.exists("faiss_store"):
             print("Vector store already exists. Loading the existing store...")
             # Try to load the vector store
@@ -75,15 +72,12 @@ def create_rag_pipeline():
         # Create RAG chain using LCEL (LangChain Expression Language)
         def format_docs(docs):
             return "\n\n".join(doc.page_content for doc in docs)
-
-        get_question = RunnableLambda(lambda x: x.get("question", ""))
-        get_chat_history = RunnableLambda(lambda x: x.get("chat_history", ""))
         
         QA_chain = (
             {
-                "context": get_question | retriever | RunnableLambda(format_docs),
-                "chat_history": get_chat_history,
-                "question": get_question,
+                "context": retriever | format_docs,
+                "chat_history": RunnablePassthrough(),
+                "question": RunnablePassthrough()
             }
             | prompt
             | llm
