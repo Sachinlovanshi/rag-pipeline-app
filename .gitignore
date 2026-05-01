@@ -1,1 +1,12 @@
+# Environment variables
 .env
+ 
+# Python cache
+__pycache__/
+*.pyc
+ 
+# FAISS storage
+faiss_store/
+ 
+# VS Code settings (optional)
+.vscode/
